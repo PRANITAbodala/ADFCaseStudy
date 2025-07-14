@@ -1,0 +1,9 @@
+{
+	"name": "adfcasestudy1pari",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "3cc91c09-269f-4682-9052-7f97c9205514",
+		"tenantId": "76a2ae5a-9f00-4f6b-95ed-5d33d77c4d61"
+	}
+}
