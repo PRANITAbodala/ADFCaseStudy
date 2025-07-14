@@ -1,0 +1,9 @@
+{
+	"name": "olympicmedal2012to2016",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "fa19eca9-387f-4282-b4e3-a781905b62ff",
+		"tenantId": "76a2ae5a-9f00-4f6b-95ed-5d33d77c4d61"
+	}
+}
