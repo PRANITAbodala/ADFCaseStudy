@@ -1,0 +1,95 @@
+{
+	"name": "source data from salescsv",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "source_dataset_for_sales",
+						"type": "DatasetReference"
+					},
+					"name": "SalesDataValidationFlow"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "ValidDataForSalesCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "InvalidDataFromSalesCSV"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ValidOutputAndInvalidOutput",
+					"description": "Valid: Units > 0 && Unit_price >= 0 && Sale_amt >= 0 && isNull(SalesMan) == false\nInvalid: !(Units > 0 && Unit_price >= 0 && Sale_amt >= 0 && isNull(SalesMan) == false)"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesDate as date 'dd-MM-yyyy',",
+				"          SalesMan as string,",
+				"          Item as string,",
+				"          Units as integer,",
+				"          Unit_price as double,",
+				"          Sale_amt as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesDataValidationFlow",
+				"SalesDataValidationFlow split(Units > 0 &&Unit_price >= 0 && toDecimal(Sale_amt) >= 0.0 &&!isNull(SalesMan) &&!isNull(SalesDate) &&!isNull(Item),",
+				"     disjoint: false) ~> ValidOutputAndInvalidOutput@(ValidSalesDetails, InvalidSalesDetails)",
+				"ValidOutputAndInvalidOutput@InvalidSalesDetails derive(ErrorReason = iif(Units <= 0, 'Invalid Units',   iif(Unit_price < 0, 'Negative Price',     iif(isNull(SalesMan), 'Missing SalesMan',       iif(isNull(SalesDate), 'Missing SalesDate',         iif(isNull(Item), 'Missing Item', 'Unknown Error')))))) ~> derivedColumn1",
+				"ValidOutputAndInvalidOutput@ValidSalesDetails sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SalesDate as date,",
+				"          SalesMan as string,",
+				"          Item as string,",
+				"          Units as integer,",
+				"          Unit_price as decimal(10,2),",
+				"          Sale_amt as decimal(10,2)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> ValidDataForSalesCSV",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SalesDate as date,",
+				"          SalesMan as string,",
+				"          Item as string,",
+				"          Units as integer,",
+				"          Unit_price as decimal(10,2),",
+				"          Sale_amt as decimal(10,2),",
+				"          ErrorReason as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> InvalidDataFromSalesCSV"
+			]
+		}
+	}
+}
