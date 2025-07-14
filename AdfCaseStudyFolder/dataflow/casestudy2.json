@@ -1,0 +1,92 @@
+{
+	"name": "casestudy2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SourceMedalsData",
+						"type": "DatasetReference"
+					},
+					"name": "MedalsData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "goldmedallist",
+						"type": "DatasetReference"
+					},
+					"name": "GoldData"
+				},
+				{
+					"dataset": {
+						"referenceName": "bronzemedallist",
+						"type": "DatasetReference"
+					},
+					"name": "BronzeData"
+				},
+				{
+					"dataset": {
+						"referenceName": "Silvermedallist",
+						"type": "DatasetReference"
+					},
+					"name": "SilverData"
+				}
+			],
+			"transformations": [
+				{
+					"name": "medaldata",
+					"description": "Conditionally distributing the data in Medal groups, based on Medal Name"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Age as integer,",
+				"          {Height (cm)} as integer,",
+				"          {Weight (kg)} as integer,",
+				"          Team as string,",
+				"          NOC as string,",
+				"          Games as string,",
+				"          Year as integer,",
+				"          Season as string,",
+				"          City as string,",
+				"          Sport as string,",
+				"          Event as string,",
+				"          Medal as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MedalsData",
+				"MedalsData split(Medal == 'Gold',",
+				"     Medal == 'Bronze',",
+				"     disjoint: false) ~> medaldata@(Gold, Bronze, Silver)",
+				"medaldata@Gold sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> GoldData",
+				"medaldata@Bronze sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> BronzeData",
+				"medaldata@Silver sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SilverData"
+			]
+		}
+	}
+}
